@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 @Slf4j
 public class Neo4jService implements BaseService {
-    public static Logger logger = LoggerFactory.getLogger(BaseService.class);
+    public static Logger logger = LoggerFactory.getLogger(Neo4jService.class);
     public static Driver driver = Neo4jConnection.getDriver();
     public static String database = System.getenv("NEO4J_DATABASE");
 
@@ -64,7 +64,6 @@ public class Neo4jService implements BaseService {
             e.printStackTrace();
             return false;
         }
-//        System.out.println("created relationship with user id1 = " + idUser1 + " and user id2 = " + idUser2);
         return true;
     }
 
@@ -92,7 +91,7 @@ public class Neo4jService implements BaseService {
 
         var queryStm = """
                            MATCH (a {user_id: $id})-[r:IS_FRIEND]-(b)
-                           RETURN b
+                           RETURN COUNT(b) as ans
                        """;
 
         var params = new HashMap<String, Object>();
@@ -100,11 +99,31 @@ public class Neo4jService implements BaseService {
 
         int count = 0;
         try (var session = driver.session(sessionCfg)) {
-            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).list(e -> e.get("id")));
-            for (var res: resultSet) {
-                logger.info(res.toString());
-                ++count;
-            }
+            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
+            return resultSet.get("ans").asInt();
+        } catch (Exception e) {
+            logger.error("{}", e.getMessage());
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+    @Override
+    public int countFriendOfFriendOfUser(int id) {
+        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.READ).build();
+
+        var queryStm = """
+                           MATCH (a {user_id: $id})-[r:IS_FRIEND*..2]-(b)
+                            RETURN COUNT(b) as ans
+                       """;
+
+        var params = new HashMap<String, Object>();
+        params.put("id", id);
+
+        int count = 0;
+        try (var session = driver.session(sessionCfg)) {
+            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
+            return resultSet.get("ans").asInt();
         } catch (Exception e) {
             logger.error("{}", e.getMessage());
             e.printStackTrace();

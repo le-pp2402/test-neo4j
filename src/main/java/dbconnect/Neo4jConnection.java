@@ -18,7 +18,7 @@ public class Neo4jConnection {
             AuthToken auth = AuthTokens.basic(username, password);
             driver = GraphDatabase.driver(URI, auth);
             driver.verifyConnectivity();
-            System.out.println("Connection established.");
+            System.out.println("Neo4j connection established.");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

@@ -5,12 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fff3db85-0e3f-4129-9c31-99006969c259" name="Changes" comment="reformat code">
-      <change afterPath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbconnect/MySqlConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DBHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbconnect/Neo4jConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbconnect/Neo4jConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbconnect/Neo4jConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/BaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/BaseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.env" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.env" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -33,6 +34,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;le-pp2402&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/le-pp2402/test-neo4j.git&quot;,
+    &quot;accountId&quot;: &quot;c9a6cff5-7277-43bf-84a5-18c642a11857&quot;
+  }
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -53,7 +66,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/o/GraphDB/Friends-Suggestion/src/main/resources/application.env",
+    "last_opened_file_path": "/home/o/IdeaProjects/learnvocabulary",
     "org.elm.workspace.PROJECT_DISCOVERY": "true"
   }
 }]]></component>
@@ -105,12 +118,39 @@
       <option name="project" value="LOCAL" />
       <updated>1723117767459</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="reformat code">
+      <option name="closed" value="true" />
+      <created>1723149570101</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1723149570101</updated>
+    </task>
+    <task id="LOCAL-00004" summary="reformat code">
+      <option name="closed" value="true" />
+      <created>1723149687558</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1723149687558</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="count friend" />
     <MESSAGE value="reformat code" />
     <option name="LAST_COMMIT_MESSAGE" value="reformat code" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/services/MySqlService.java</url>
+          <line>96</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

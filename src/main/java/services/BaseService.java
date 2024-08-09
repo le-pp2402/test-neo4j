@@ -7,5 +7,5 @@ public interface BaseService {
     boolean createFriendship(int idUser1, int idUser2);
     boolean clearDB();
     int countFriendOfUser(int id);
-
+    int countFriendOfFriendOfUser(int id);
 }
