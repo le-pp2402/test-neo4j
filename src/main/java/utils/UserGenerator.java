@@ -9,9 +9,9 @@ import java.util.List;
 public class UserGenerator {
     public static List<User> users = new ArrayList<>();
     public static List<Pair<Integer, Integer>> friendship = new ArrayList<>();
-    public static int numberOfUser = 10000;
-    public static int friendPerUser = 10;
-    private static final int MAX_SIZE = 100000000;
+    public static int numberOfUser = 5000;
+    public static int friendPerUser = 100;
+    private static final int MAX_SIZE = 10000;
 
     public static void genUser() {
         users.clear();
