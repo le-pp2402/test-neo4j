@@ -4,15 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fff3db85-0e3f-4129-9c31-99006969c259" name="Changes" comment="reformat code">
-      <change afterPath="$PROJECT_DIR$/src/main/java/dbconnect/MySqlConnection.java" afterDir="false" />
+    <list default="true" id="fff3db85-0e3f-4129-9c31-99006969c259" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbconnect/Neo4jConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbconnect/Neo4jConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/services/BaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/BaseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/MySqlService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/MySqlService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.env" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,6 +31,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="762db7445b0b0c99795e5fe5dde3c7f24a1dc8c5" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -66,7 +70,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/o/IdeaProjects/learnvocabulary",
+    "last_opened_file_path": "/home/o/Downloads/neo4j-in-action",
     "org.elm.workspace.PROJECT_DISCOVERY": "true"
   }
 }]]></component>
@@ -134,21 +138,35 @@
       <option name="project" value="LOCAL" />
       <updated>1723149687558</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="add mysql connection - query for count friends of friends's user">
+      <option name="closed" value="true" />
+      <created>1723196611720</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1723196611720</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="count friend" />
     <MESSAGE value="reformat code" />
-    <option name="LAST_COMMIT_MESSAGE" value="reformat code" />
+    <MESSAGE value="add mysql connection - query for count friends of friends's user" />
+    <option name="LAST_COMMIT_MESSAGE" value="add mysql connection - query for count friends of friends's user" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/services/MySqlService.java</url>
-          <line>96</line>
-          <option name="timeStamp" value="3" />
+          <url>file://$PROJECT_DIR$/src/main/java/Main.java</url>
+          <line>29</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Main.java</url>
+          <line>48</line>
+          <option name="timeStamp" value="6" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -3,66 +3,73 @@ package services;
 import dbconnect.Neo4jConnection;
 import lombok.extern.slf4j.Slf4j;
 import models.User;
-import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
 
 
 @Slf4j
-public class Neo4jService implements BaseService {
+public class Neo4jService implements BaseService<List<User>> {
     public static Logger logger = LoggerFactory.getLogger(Neo4jService.class);
     public static Driver driver = Neo4jConnection.getDriver();
     public static String database = System.getenv("NEO4J_DATABASE");
+    public static final Integer BATCH_SIZE = 100;
+    public static String queryStm = """
+                                       CREATE (p:Person {username: $username, user_id: $user_id})
+                                    """;
+
+
+    //
 
     @Override
-    public boolean createUser(User user) {
-        // if no set the default database will be used
+    public boolean createUser(List<User> users) {
         var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.WRITE).build();
-
-        // prepare stm
-        var queryStm = """
-                       CREATE (p:Person {username: $username, user_id: $user_id})
-                       """;
-        var params = new HashMap<String, Object>();
-                params.put("username", user.getUsername());
-                params.put("user_id", user.getId());
-
-        // using try to auto close session
         try (var session = driver.session(sessionCfg)) {
-            session.writeTransaction(transaction -> transaction.run(queryStm, params).consume());
-        } catch (Exception e) {
-            logger.error("{}", e.getMessage());
-            e.printStackTrace();
-            return false;
+            session.executeWrite(tx -> tx.run("UNWIND $batch AS user " +
+                            "CREATE (a:Person {user_id: user.user_id, username: user.username})",
+                    Values.parameters("batch", users.stream()
+                            .map(user -> Values.parameters(
+                                    "user_id", user.getId(),
+                                    "username", user.getUsername()))
+                            .toList())).consume());
         }
-
-//        System.out.println("created user with user id = " + user.getId());
         return true;
     }
 
+    List<Pair<Integer, Integer>> lstPair = new ArrayList<>();
+
     @Override
     public boolean createFriendship(int idUser1, int idUser2) {
-        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.WRITE).build();
+        lstPair.add(new Pair<Integer, Integer>(idUser1, idUser2));
+        return true;
+    }
 
-        var queryStm = """
-                            MATCH (a {user_id: $id1}), (b {user_id: $id2})
-                            CREATE (a)-[r:IS_FRIEND]->(b)
-                       """;
-
-        var params = new HashMap<String, Object>();
-        params.put("id1", idUser1);
-        params.put("id2", idUser2);
-
+     public boolean createEdge() {
+        var sessionCfg = SessionConfig.builder()
+                .withDatabase(database)
+                .withDefaultAccessMode(AccessMode.WRITE)
+                .build();
+        String sql = """
+                     UNWIND $batch AS lstId
+                     MATCH (a:Person {user_id: lstId[0]}), (b:Person {user_id: lstId[1]})
+                     CREATE (a)-[:IS_FRIEND]->(b)
+                     """;
         try (var session = driver.session(sessionCfg)) {
-            session.writeTransaction(transaction -> transaction.run(queryStm, params).consume());
-        } catch (Exception e) {
-            logger.error("{}", e.getMessage());
-            e.printStackTrace();
-            return false;
+            for (int i = 0; i < lstPair.size(); i += BATCH_SIZE) {
+                var lst = lstPair.subList(i, Math.min(lstPair.size(), i + BATCH_SIZE));
+                session.executeWrite(tx -> tx.run(sql,
+                        Values.parameters("batch",
+                                lst.stream()
+                                        .map(pair -> List.of(pair.getFirst(), pair.getSecond()))
+                                        .toList())).consume());
+                System.out.println("FINISHED BATCH: " + i);
+            }
         }
         return true;
     }
@@ -91,7 +98,7 @@ public class Neo4jService implements BaseService {
 
         var queryStm = """
                            MATCH (a {user_id: $id})-[r:IS_FRIEND]-(b)
-                           RETURN COUNT(b) as ans
+                           RETURN COUNT(DISTINCT b) as ans
                        """;
 
         var params = new HashMap<String, Object>();
@@ -114,7 +121,30 @@ public class Neo4jService implements BaseService {
 
         var queryStm = """
                            MATCH (a {user_id: $id})-[r:IS_FRIEND*..2]-(b)
-                            RETURN COUNT(b) as ans
+                           RETURN COUNT(DISTINCT b) as ans
+                       """;
+
+        var params = new HashMap<String, Object>();
+        params.put("id", id);
+
+        int count = 0;
+        try (var session = driver.session(sessionCfg)) {
+            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
+            return resultSet.get("ans").asInt();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+    @Override
+    public int countFriendOfFriendDepth4(int id) {
+        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.READ).build();
+
+        var queryStm = """
+                           MATCH (a {user_id: $id})-[r:IS_FRIEND*..3]-(b)
+                           RETURN COUNT(DISTINCT b) as ans
                        """;
 
         var params = new HashMap<String, Object>();
@@ -130,7 +160,6 @@ public class Neo4jService implements BaseService {
         }
         return count;
     }
-
 
 }
 
