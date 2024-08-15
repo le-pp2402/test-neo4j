@@ -15,10 +15,9 @@ import java.io.FileNotFoundException;
 public class Main {
     private static final Neo4jService neo4jService = new Neo4jService();
     private static final MySqlService mySqlService = new MySqlService();
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
 
-        try {
-            Generator.genDatasets(200, 10000);
+                    Generator.genDatasets(100, 3333);
 
             neo4jService.clearDB();
             neo4jService.loadData();
@@ -39,21 +38,18 @@ public class Main {
 //            long e = System.currentTimeMillis();
 //
 //            System.out.println("neo4j: " + (e - t) + " ms");
-            System.out.println("START: ");
-            long ttt = System.currentTimeMillis();
-            System.out.println(neo4jService.count(23));
-            long eee = System.currentTimeMillis();
+        System.out.println("START: ");
+        long ttt = System.currentTimeMillis();
+        System.out.println(neo4jService.count(23));
+        long eee = System.currentTimeMillis();
 
-            System.out.println("neo4j: " + (eee - ttt) + " ms");
+        System.out.println("neo4j: " + (eee - ttt) + " ms");
 
-            long t4 = System.currentTimeMillis();
-            System.out.println(mySqlService.count(23));
-            long e4 = System.currentTimeMillis();
+        long t4 = System.currentTimeMillis();
+        System.out.println(mySqlService.count(23));
+        long e4 = System.currentTimeMillis();
 
-            System.out.println("mysql: " + (e4 - t4) + " ms");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("mysql: " + (e4 - t4) + " ms");
     }
 
 }

@@ -102,9 +102,7 @@ public class Neo4jService implements BaseService {
     public int count(int id) {
         String stm = """
                     MATCH (p1:Person{id: $id})
-                        -[:FRIENDS]->(p2:Person)
-                        -[:FRIENDS]->(p3:Person)
-                        -[:FRIENDS]->(p4:Person)
+                        -[:FRIENDS*..4]->(p4:Person)
                     RETURN COUNT(distinct p4.id) AS ans
                     """;
         var param = new HashMap<String, Object>();
