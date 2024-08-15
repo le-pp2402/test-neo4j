@@ -7,128 +7,126 @@ import models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class MySqlService implements BaseService<User> {
+public class MySqlService implements BaseService {
     public static final Logger logger = LoggerFactory.getLogger(MySqlService.class);
-    public static String createFriendshipSql = """
-                                    INSERT INTO friends(user_id_1, user_id_2)
-                                    VALUES(?, ?);
-                                """;
-    public static String createFriendshipSql1 = """
-                                    INSERT INTO friends(user_id_1, user_id_2)
-                                    VALUES(?, ?);
-                                """;
-    public static PreparedStatement ppStatement;
-    public static PreparedStatement ppStatement1;
-    static {
-        try {
-            ppStatement = MySqlConnection.getConnection().prepareStatement(createFriendshipSql);
-            ppStatement1 = MySqlConnection.getConnection().prepareStatement(createFriendshipSql1);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
-    public boolean createUser(User user) {
+    public boolean loadData() {
+        String sql = """
+                       LOAD DATA INFILE ?
+                       INTO TABLE t_user
+                       COLUMNS TERMINATED BY ','
+                       OPTIONALLY ENCLOSED BY '"'
+                       ESCAPED BY '"'
+                       LINES TERMINATED BY '\\n'
+                       IGNORE 1 LINES;
+                       """;
+        String sql1 = """
+                        LOAD DATA INFILE ?
+                        INTO TABLE t_user_friend
+                        COLUMNS TERMINATED BY ','
+                        OPTIONALLY ENCLOSED BY '"'
+                        ESCAPED BY '"'
+                        LINES TERMINATED BY '\\n'
+                        IGNORE 1 LINES;
+                       """;
+        try {
+            var pp = MySqlConnection.getConnection().prepareStatement(sql);
+            pp.setString(1, Generator.temDir.resolve(Generator.USERS_CSV).toString());
+            pp.execute();
+
+            pp = MySqlConnection.getConnection().prepareStatement(sql1);
+            pp.setString(1, Generator.temDir.resolve(Generator.FRIENDSHIPS_CSV).toString());
+            pp.execute();
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
         return true;
     }
 
     @Override
-    public boolean createFriendship(int idUser1, int idUser2) {
+    public boolean clearDB() {
+        String sql  ="""
+                        TRUNCATE TABLE t_user;
+                     """;
+        String sql1 ="""
+                        TRUNCATE TABLE t_user_friend;
+                     """;
         try {
-            ppStatement.setInt(1, idUser1);
-            ppStatement.setInt(2, idUser2);
-            ppStatement.addBatch();
-
-            ppStatement1.setInt(1, idUser2);
-            ppStatement1.setInt(2, idUser1);
-            ppStatement1.addBatch();
+            MySqlConnection.getConnection().prepareStatement(sql1).execute();
+            MySqlConnection.getConnection().prepareStatement(sql).execute();
             return true;
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             return false;
         }
     }
-
-    @Override
-    public boolean clearDB() {
+    public int count(int id) {
         String sql = """
-                        DELETE FROM friends WHERE id > 0
-                    """;
+                    SELECT count(DISTINCT uf3.user_2)
+                    FROM            t_user_friend uf1
+                          INNER JOIN 	t_user_friend uf2 ON uf2.user_1 = uf1.user_2
+                          INNER JOIN 	t_user_friend uf3 ON uf3.user_1 = uf2.user_2
+                    WHERE uf1.user_1 = ?
+                """;
         try {
-            return MySqlConnection.getConnection().prepareStatement(sql).execute();
-        } catch (SQLException e) {
+            var ps = MySqlConnection.getConnection().prepareStatement(sql);
+            ps.setInt(1, id);
+            var rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) {
             System.err.println(e.getMessage());
-            return false;
         }
+        return 0;
     }
 
     @Override
-    public int countFriendOfUser(int id) {
+    public int countRelationshipLength4(int id) {
         String sql = """
-                       SELECT count(*) FROM friends
-                       WHERE user_id_1 = ?
-                    """;
+                    SELECT
+                       COUNT(*)
+                    FROM            t_user_friend uf1
+                          INNER JOIN 	t_user_friend uf2 ON uf2.user_1 = uf1.user_2
+                          INNER JOIN 	t_user_friend uf3 ON uf3.user_1 = uf2.user_2
+                    WHERE uf1.user_1 = ?
+                            AND uf1.user_1 != uf2.user_2 AND uf1.user_1 != uf3.user_2
+                        AND uf2.user_1 != uf3.user_2
+                    ;
+                """;
         try {
-            var stm = MySqlConnection.getConnection().prepareStatement(sql);
-            stm.setInt(1, id);
-            var rs = stm.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException e) {
+            var ps = MySqlConnection.getConnection().prepareStatement(sql);
+            ps.setInt(1, id);
+            var rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) {
             System.err.println(e.getMessage());
-            return 0;
         }
+        return 0;
     }
 
     @Override
-    public int countFriendOfFriendOfUser(int id) {
-        String sql = """
-                        SELECT count(distinct B.user_id_2)
-                        FROM
-                        (SELECT user_id_2 FROM friends WHERE user_id_1 = ?) AS A
-                        INNER JOIN friends B WHERE user_id_1 = A.user_id_2
-                    """;
-        try {
-            var stm = MySqlConnection.getConnection().prepareStatement(sql);
-            stm.setInt(1, id);
-            var rs = stm.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-            return 0;
-        }
+    public int countRelationshipLength5(int id) {
+        return 0;
     }
 
     @Override
-    public int countFriendOfFriendDepth4(int id) {
-        String sql = """
-                       SELECT count(distinct f4.user_id_2) AS cnt
-                            FROM friends f1
-                            INNER JOIN friends f2
-                                on f1.user_id_2 = f2.user_id_1
-                            INNER JOIN friends f3
-                                on f2.user_id_2 = f3.user_id_1
-                            INNER JOIN friends f4
-                                on f3.user_id_2 = f4.user_id_1
-                            WHERE f1.user_id_1 = ?
-                    """;
-        try {
-            var stm = MySqlConnection.getConnection().prepareStatement(sql);
-            stm.setInt(1, id);
-            var rs = stm.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-            return 0;
-        }
+    public int countRelationshipLength6(int id) {
+        return 0;
     }
+
+    @Override
+    public int countRelationshipLength7(int id) {
+        return 0;
+    }
+
+
 }

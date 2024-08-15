@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.Pair;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,61 +16,53 @@ import java.util.List;
 
 
 @Slf4j
-public class Neo4jService implements BaseService<List<User>> {
+public class Neo4jService implements BaseService {
     public static Logger logger = LoggerFactory.getLogger(Neo4jService.class);
     public static Driver driver = Neo4jConnection.getDriver();
     public static String database = System.getenv("NEO4J_DATABASE");
+
     public static final Integer BATCH_SIZE = 100;
-    public static String queryStm = """
-                                       CREATE (p:Person {username: $username, user_id: $user_id})
-                                    """;
-
-
-    //
 
     @Override
-    public boolean createUser(List<User> users) {
+    public boolean loadData() {
         var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.WRITE).build();
+        var userPath = Generator.temDir.resolve(Generator.USERS_CSV).toString();
+        var frsPath = Generator.temDir.resolve(Generator.FRIENDSHIPS_CSV).toString();
+
+        var addUserStm = """
+                        LOAD CSV WITH HEADERS FROM $filepath AS row
+                        MERGE(a: Person {id:toInteger(row.id), name:row.name})
+                        RETURN a LIMIT 1
+                        """;
+
+        var param = new HashMap<>();
+        param.put("filepath", "file:///" + userPath);
+
         try (var session = driver.session(sessionCfg)) {
-            session.executeWrite(tx -> tx.run("UNWIND $batch AS user " +
-                            "CREATE (a:Person {user_id: user.user_id, username: user.username})",
-                    Values.parameters("batch", users.stream()
-                            .map(user -> Values.parameters(
-                                    "user_id", user.getId(),
-                                    "username", user.getUsername()))
-                            .toList())).consume());
+            session.executeWrite(transaction -> transaction.run(addUserStm, Values.value(param)).consume());
+        } catch (Exception e) {
+            System.err.println("Load people fail check file " + userPath);
+            System.err.println(e.getMessage());
+            return false;
         }
-        return true;
-    }
 
-    List<Pair<Integer, Integer>> lstPair = new ArrayList<>();
+        var addFrsStm = """
+                        LOAD CSV WITH HEADERS FROM $filepath AS row
+                        MATCH (p1:Person {id: toInteger(row.user_1)})
+                        WITH p1, row
+                        MATCH (p2:Person {id: toInteger(row.user_2)})
+                        MERGE (p1)-[:FRIENDS]->(p2);
+                        """;
 
-    @Override
-    public boolean createFriendship(int idUser1, int idUser2) {
-        lstPair.add(new Pair<Integer, Integer>(idUser1, idUser2));
-        return true;
-    }
+        var param1 = new HashMap<>();
+        param1.put("filepath", "file:///" + frsPath);
 
-     public boolean createEdge() {
-        var sessionCfg = SessionConfig.builder()
-                .withDatabase(database)
-                .withDefaultAccessMode(AccessMode.WRITE)
-                .build();
-        String sql = """
-                     UNWIND $batch AS lstId
-                     MATCH (a:Person {user_id: lstId[0]}), (b:Person {user_id: lstId[1]})
-                     CREATE (a)-[:IS_FRIEND]->(b)
-                     """;
         try (var session = driver.session(sessionCfg)) {
-            for (int i = 0; i < lstPair.size(); i += BATCH_SIZE) {
-                var lst = lstPair.subList(i, Math.min(lstPair.size(), i + BATCH_SIZE));
-                session.executeWrite(tx -> tx.run(sql,
-                        Values.parameters("batch",
-                                lst.stream()
-                                        .map(pair -> List.of(pair.getFirst(), pair.getSecond()))
-                                        .toList())).consume());
-                System.out.println("FINISHED BATCH: " + i);
-            }
+            session.executeWrite(transaction -> transaction.run(addFrsStm, Values.value(param1)).consume());
+        } catch (Exception e) {
+            System.err.println("Load friendships fail check file " + frsPath);
+            System.err.println(e.getMessage());
+            return false;
         }
         return true;
     }
@@ -77,106 +70,119 @@ public class Neo4jService implements BaseService<List<User>> {
     @Override
     public boolean clearDB() {
         var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.WRITE).build();
-
         var queryStm = """
-                            MATCH(a) DETACH DELETE a
+                        MATCH(a) DETACH DELETE a
                        """;
-
         try (var session = driver.session(sessionCfg)) {
-            session.writeTransaction(transaction -> transaction.run(queryStm).consume());
+            session.executeWrite(transaction -> transaction.run(queryStm).consume());
         } catch (Exception e) {
-            logger.error("{}", e.getMessage());
-            e.printStackTrace();
-            return false;
+            log.error(e.getMessage());
+            System.err.println(e.getMessage());
         }
         return true;
     }
 
     @Override
-    public int countFriendOfUser(int id) {
-        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.READ).build();
+    public int countRelationshipLength4(int id) {
+        String stm = """
+                    MATCH (p1:Person{id: $id})
+                        -[:FRIENDS]->(p2:Person)
+                        -[:FRIENDS]->(p3:Person)
+                        -[:FRIENDS]->(p4:Person)
+                    WHERE 1=1
+                        AND p1.id <> p3.id AND p1.id <> p4.id
+                        AND p2.id <> p4.id
+                    RETURN COUNT({n1:p1.name, n2:p2.name, n3:p3.name, n4:p4.name}) AS ans
+                    """;
+        var param = new HashMap<String, Object>();
+        param.put("id", id);
+        return ExecuteRead(stm, param);
+    }
 
-        var queryStm = """
-                           MATCH (a {user_id: $id})-[r:IS_FRIEND]-(b)
-                           RETURN COUNT(DISTINCT b) as ans
-                       """;
-
-        var params = new HashMap<String, Object>();
-        params.put("id", id);
-
-        int count = 0;
-        try (var session = driver.session(sessionCfg)) {
-            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
-            return resultSet.get("ans").asInt();
-        } catch (Exception e) {
-            logger.error("{}", e.getMessage());
-            e.printStackTrace();
-        }
-        return count;
+    public int count(int id) {
+        String stm = """
+                    MATCH (p1:Person{id: $id})
+                        -[:FRIENDS]->(p2:Person)
+                        -[:FRIENDS]->(p3:Person)
+                        -[:FRIENDS]->(p4:Person)
+                    RETURN COUNT(distinct p4.id) AS ans
+                    """;
+        var param = new HashMap<String, Object>();
+        param.put("id", id);
+        return ExecuteRead(stm, param);
     }
 
     @Override
-    public int countFriendOfFriendOfUser(int id) {
-        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.READ).build();
+    public int countRelationshipLength5(int id) {
+        String stm = """
+                    MATCH (p1:Person{id: $id})
+                        -[:FRIENDS]->(p2:Person)
+                        -[:FRIENDS]->(p3:Person)
+                        -[:FRIENDS]->(p4:Person)
+                        -[:FRIENDS]->(p5:Person)
+                    WHERE 1=1
+                        AND p1.id <> p3.id AND p1.id <> p4.id AND p1.id <> p5.id
+                        AND p2.id <> p4.id AND p2.id <> p5.id
+                        AND p3.id <> p5.id
+                    RETURN COUNT({n1:p1.name, n2:p2.name, n3:p3.name, n4:p4.name, n5:p5.name}) as ans
+                    """;
+        var param = new HashMap<String, Object>();
+        param.put("id", id);
+        return ExecuteRead(stm, param);
+    }
 
-        var queryStm = """
-                           MATCH (a {user_id: $id})-[r:IS_FRIEND*..2]-(b)
-                           RETURN COUNT(DISTINCT b) as ans
-                       """;
+    @Override
+    public int countRelationshipLength6(int id) {
+        String stm = """
+                    MATCH (p1:Person{id: $id})
+                            -[:FRIENDS]->(p2:Person)
+                            -[:FRIENDS]->(p3:Person)
+                            -[:FRIENDS]->(p4:Person)
+                            -[:FRIENDS]->(p5:Person)
+                            -[:FRIENDS]->(p6:Person)
+                        WHERE 1=1
+                            AND p1.id <> p3.id AND p1.id <> p4.id AND p1.id <> p5.id AND p1.id <> p6.id
+                            AND p2.id <> p4.id AND p2.id <> p5.id AND p2.id <> p6.id
+                            AND p3.id <> p5.id AND p3.id <> p6.id
+                            AND p4.id <> p6.id
+                        RETURN COUNT({n1:p1.name, n2:p2.name, n3:p3.name, n4:p4.name, n5:p5.name, n6:p6.name}) AS ans
+                    """;
+        var param = new HashMap<String, Object>();
+        param.put("id", id);
+        return ExecuteRead(stm, param);
+    }
 
-        var params = new HashMap<String, Object>();
-        params.put("id", id);
+    @Override
+    public int countRelationshipLength7(int id) {
+        String stm = """
+                    MATCH (p1:Person{id: $id})
+                            -[:FRIENDS]->(p2:Person)
+                            -[:FRIENDS]->(p3:Person)
+                            -[:FRIENDS]->(p4:Person)
+                            -[:FRIENDS]->(p5:Person)
+                            -[:FRIENDS]->(p6:Person)
+                            -[:FRIENDS]->(p7:Person)
+                        WHERE   NOT (p1 IN [p2, p3, p4, p5, p6, p7])
+                            AND NOT (p2 IN [p4, p5, p6, p7])
+                            AND NOT (p3 IN [p5, p6, p7])
+                            AND NOT (p4 IN [p6, p7])
+                            AND NOT (p5 IN [p7])
+                        RETURN COUNT({n1:p1.id, n2:p2.id, n3:p3.id, n4:p4.id, n5:p5.id, n6:p6.id, n7: p7.id}) AS ans
+                    """;
+        var param = new HashMap<String, Object>();
+        param.put("id", id);
+        return ExecuteRead(stm, param);
+    }
 
-        int count = 0;
+    public int ExecuteRead(String stm, HashMap<String, Object> param) {
+        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.WRITE).build();
         try (var session = driver.session(sessionCfg)) {
-            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
-            return resultSet.get("ans").asInt();
+            return session.executeWrite(transaction -> transaction.run(stm, Values.value(param)).single()).get("ans").asInt();
         } catch (Exception e) {
+            log.error(e.getMessage());
             System.err.println(e.getMessage());
-            e.printStackTrace();
         }
-        return count;
-    }
-
-    @Override
-    public int countFriendOfFriendDepth4(int id) {
-        var sessionCfg = SessionConfig.builder().withDatabase(database).withDefaultAccessMode(AccessMode.READ).build();
-
-        var queryStm = """
-                           MATCH (a {user_id: $id})-[r:IS_FRIEND*..3]-(b)
-                           RETURN COUNT(DISTINCT b) as ans
-                       """;
-
-        var params = new HashMap<String, Object>();
-        params.put("id", id);
-
-        int count = 0;
-        try (var session = driver.session(sessionCfg)) {
-            var resultSet = session.readTransaction(transaction -> transaction.run(queryStm, params).single());
-            return resultSet.get("ans").asInt();
-        } catch (Exception e) {
-            logger.error("{}", e.getMessage());
-            e.printStackTrace();
-        }
-        return count;
+        return 0;
     }
 
 }
-
-
- // When u intend to read data, u should execute a Read transaction.
-    // ---------------- write ----------------------- Write ----------: auto rollback if got error
-    // for manually
-    /*
-            var session = ...
-            var tx = session.beginTransaction();
-            try {
-                tx.run();
-
-                tx.commit();
-            } catch (Exception e) {
-
-                tx.rollback();
-            }
-            session.close() // when u didn't user try block
-     */

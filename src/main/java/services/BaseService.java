@@ -2,11 +2,11 @@ package services;
 
 import models.User;
 
-public interface BaseService<T> {
-    boolean createUser(T user);
-    boolean createFriendship(int idUser1, int idUser2);
+public interface BaseService {
+    boolean loadData();
     boolean clearDB();
-    int countFriendOfUser(int id);
-    int countFriendOfFriendOfUser(int id);
-    int countFriendOfFriendDepth4(int id);
+    int countRelationshipLength4(int id);
+    int countRelationshipLength5(int id);
+    int countRelationshipLength6(int id);
+    int countRelationshipLength7(int id);
 }

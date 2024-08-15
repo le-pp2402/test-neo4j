@@ -4,14 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fff3db85-0e3f-4129-9c31-99006969c259" name="Changes" comment="">
+    <list default="true" id="fff3db85-0e3f-4129-9c31-99006969c259" name="Changes" comment="add mysql connection - query for count friends of friends's user">
+      <change afterPath="$PROJECT_DIR$/src/main/java/services/Generator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/services/BaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/BaseService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/services/MySqlService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/MySqlService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/Neo4jService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/utils/UserGenerator.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,10 +68,11 @@
     "Application.Run.executor": "Run",
     "Application.Unnamed.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "test",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/o/Downloads/neo4j-in-action",
-    "org.elm.workspace.PROJECT_DISCOVERY": "true"
+    "last_opened_file_path": "/home/o/IdeaProjects/learnvocabulary",
+    "org.elm.workspace.PROJECT_DISCOVERY": "true",
+    "settings.editor.selected.configurable": "reference.settings.ide.settings.new.ui"
   }
 }]]></component>
   <component name="RunManager">
@@ -146,7 +147,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723196611720</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="add mysql connection - query for count friends of friends's user">
+      <option name="closed" value="true" />
+      <created>1723447909836</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1723447909836</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -154,21 +163,5 @@
     <MESSAGE value="reformat code" />
     <MESSAGE value="add mysql connection - query for count friends of friends's user" />
     <option name="LAST_COMMIT_MESSAGE" value="add mysql connection - query for count friends of friends's user" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Main.java</url>
-          <line>29</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Main.java</url>
-          <line>48</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
